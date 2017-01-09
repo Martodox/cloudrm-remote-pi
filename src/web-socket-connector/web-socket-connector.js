@@ -43,6 +43,10 @@ export default class webSocketConnector {
 
     this.connection.on('connect', () => {
       console.log(`Successful connected to: ${config.server}`)
+    });
+
+    this.connection.on('disconnect', () => {
+      console.log(`Disconnected from: ${config.server}`)
     })
 
   }

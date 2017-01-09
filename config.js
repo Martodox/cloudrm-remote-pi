@@ -1,4 +1,4 @@
 export default {
-  server: 'http://localhost:3000',
+  server: 'http://cloudrm.pro:3000',
   privateKey: './key/id_rsa'
 }
