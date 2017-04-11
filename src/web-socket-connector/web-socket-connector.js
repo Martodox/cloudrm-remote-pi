@@ -4,16 +4,27 @@ import os from 'os';
 import URLSafeBase64 from 'urlsafe-base64';
 import ioClient from 'socket.io-client';
 import config from '../../config';
+import request from 'request';
+
+const keyLocation = './key.rsa';
 
 export default class webSocketConnector {
 
   constructor() {
 
+    try {
+      this._gatherMetadata();
+      this._attemptConnection();
+    } catch (e) {
+      this._attemptRegistration();
+    }
+
+  }
+
+  _gatherMetadata() {
     this.connectionVerifyString = this._createVerificationString();
     this.privateKey = this._getPrivateKey();
     this.remoteId = this._getDeviceId();
-
-    this._attemptConnection();
   }
 
   _createVerificationString() {
@@ -21,7 +32,7 @@ export default class webSocketConnector {
   }
 
   _getPrivateKey() {
-    return fs.readFileSync(config.privateKey, 'utf8');
+    return fs.readFileSync(keyLocation, 'utf8');
   }
 
   _getDeviceId() {
@@ -31,14 +42,15 @@ export default class webSocketConnector {
   _attemptConnection() {
 
     const encrypted = crypto.privateEncrypt(this.privateKey, new Buffer(this.connectionVerifyString));
+
     const escaped = URLSafeBase64.encode(encrypted);
 
-    const connectionQurey = `handshake=${escaped}&verificationString=${this.connectionVerifyString}&remoteId=${this.remoteId}`;
+    const connectionQuery = `handshake=${escaped}&verificationString=${this.connectionVerifyString}&remoteId=${this.remoteId}`;
 
-    this.connection = ioClient.connect(config.server, {query: connectionQurey});
+    this.connection = ioClient.connect(config.server, {query: connectionQuery});
 
     this.connection.on('error', msg => {
-      console.log(`Connection error: ${msg}`);
+      console.error(`Connection error: ${msg}`);
     });
 
     this.connection.on('connect', () => {
@@ -49,6 +61,31 @@ export default class webSocketConnector {
       console.log(`Disconnected from: ${config.server}`)
     })
 
+  }
+
+  _attemptRegistration() {
+
+    request.post({url:`${config.server}/api/v1/remotes/new`, form: {deviceId:this._getDeviceId()}}, (error, responseCode, body) => {
+
+      if (!!error) {
+        return console.error(error);
+      }
+
+      const response = JSON.parse(body);
+
+      fs.writeFile(keyLocation, response.key, (err) => {
+        if(err) {
+          return console.log('Writing error', err);
+        }
+        console.log("The file was saved!. Retrying");
+
+        this._gatherMetadata();
+        this._attemptConnection();
+
+      });
+
+
+    });
   }
 
 
