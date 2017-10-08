@@ -4,3 +4,4 @@ dist
 storage
 .DS_Store
 key.rsa
+.vscode

@@ -13,9 +13,9 @@ export default class webSocketConnector {
   constructor() {
 
     try {
-      this._gatherMetadata();
       this._attemptConnection();
     } catch (e) {
+      console.log('Connection atempt fail. Trying to regester');
       this._attemptRegistration();
     }
 
@@ -24,6 +24,7 @@ export default class webSocketConnector {
   _gatherMetadata() {
     this.connectionVerifyString = this._createVerificationString();
     this.privateKey = this._getPrivateKey();
+
     this.remoteId = this._getDeviceId();
   }
 
@@ -41,6 +42,11 @@ export default class webSocketConnector {
 
   _attemptConnection() {
 
+    console.log('Attempting connection');
+
+    this._gatherMetadata();
+
+
     const encrypted = crypto.privateEncrypt(this.privateKey, new Buffer(this.connectionVerifyString));
 
     const escaped = URLSafeBase64.encode(encrypted);
@@ -51,6 +57,7 @@ export default class webSocketConnector {
 
     this.connection.on('error', msg => {
       console.error(`Connection error: ${msg}`);
+      this._attemptRegistration()
     });
 
     this.connection.on('connect', () => {
@@ -64,6 +71,8 @@ export default class webSocketConnector {
   }
 
   _attemptRegistration() {
+
+    console.log('Remote not found on the server. Attempting registration');
 
     request.post({url:`${config.server}/api/v1/remotes/new`, form: {deviceId:this._getDeviceId()}}, (error, responseCode, body) => {
 
@@ -79,8 +88,13 @@ export default class webSocketConnector {
         }
         console.log("The file was saved!. Retrying");
 
-        this._gatherMetadata();
-        this._attemptConnection();
+        try {
+            this._attemptConnection();
+        } catch (e) {
+            console.log('Connection failed after registration. Aborting')
+
+        }
+
 
       });
 
