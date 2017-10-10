@@ -1,3 +1,4 @@
 export default {
-  server: 'http://localhost:3000'
+  // server: 'https://api.cloudrm.pro'
+    server: 'http://localhost:3000'
 }

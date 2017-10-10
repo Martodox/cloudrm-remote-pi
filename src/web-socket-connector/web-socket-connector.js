@@ -10,7 +10,18 @@ const keyLocation = './key.rsa';
 
 export default class webSocketConnector {
 
-  constructor() {
+  constructor(devices) {
+
+    this.devices = devices;
+    this.actions = [];
+
+    for (let device in this.devices) {
+        this.actions.push({
+            name: device,
+            type: this.devices[device]['type'],
+            actions: Object.keys(this.devices[device]['class']['actions'])
+        })
+    }
 
     try {
       this._attemptConnection();
@@ -62,6 +73,14 @@ export default class webSocketConnector {
 
     this.connection.on('connect', () => {
       console.log(`Successful connected to: ${config.server}`)
+
+
+
+      this.connection.emit('availableActions', this.actions)
+    });
+
+    this.connection.on('invokeAction', payload => {
+        this.devices[payload.device]['class']['actions'][payload.action]()
     });
 
     this.connection.on('disconnect', () => {
