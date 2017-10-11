@@ -21,6 +21,7 @@
     "nodemon": "^1.10.0"
   },
   "dependencies": {
+    "keypress": "^0.2.1",
     "request": "^2.81.0",
     "socket.io-client": "^1.7.2",
     "urlsafe-base64": "^1.0.0"

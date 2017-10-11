@@ -10,26 +10,43 @@ const keyLocation = './key.rsa';
 
 export default class webSocketConnector {
 
-  constructor(devices) {
+  actions = [];
+  devices = {};
 
-    this.devices = devices;
-    this.actions = [];
+  connection = null;
 
-    for (let device in this.devices) {
-        this.actions.push({
-            name: device,
-            type: this.devices[device]['type'],
-            actions: Object.keys(this.devices[device]['class']['actions'])
+  connect() {
+    return new Promise((resolve, reject) => {
+
+        this._attemptConnection().then(result => {
+          resolve(result)
+        }, error => {
+            console.error(error);
+            this._attemptRegistration().then(resolve, reject);
         })
-    }
+    });
 
-    try {
-      this._attemptConnection();
-    } catch (e) {
-      console.log('Connection atempt fail. Trying to regester');
-      this._attemptRegistration();
-    }
+  }
 
+  registerDevicesActions(devices) {
+      this.devices = devices;
+
+      this.actions = []
+
+      for (let device in this.devices) {
+          try {
+              this.actions.push({
+                  name: device,
+                  type: this.devices[device]['type'],
+                  actions: Object.keys(this.devices[device]['class']['actions'])
+              })
+          } catch (error) {
+
+          }
+
+      }
+
+      this.connection.emit('availableActions', this.actions)
   }
 
   _gatherMetadata() {
@@ -48,78 +65,79 @@ export default class webSocketConnector {
   }
 
   _getDeviceId() {
-    return os.networkInterfaces()['en0'][0].address;
+    return config.deviceId || npmos.networkInterfaces()['en0'][0].address;
   }
 
   _attemptConnection() {
+    return new Promise((resolve, reject) => {
 
-    console.log('Attempting connection');
+      console.log('Attempting connection');
 
-    this._gatherMetadata();
+      this._gatherMetadata();
 
 
-    const encrypted = crypto.privateEncrypt(this.privateKey, new Buffer(this.connectionVerifyString));
+      const encrypted = crypto.privateEncrypt(this.privateKey, new Buffer(this.connectionVerifyString));
 
-    const escaped = URLSafeBase64.encode(encrypted);
+      const escaped = URLSafeBase64.encode(encrypted);
 
-    const connectionQuery = `handshake=${escaped}&verificationString=${this.connectionVerifyString}&remoteId=${this.remoteId}`;
+      const connectionQuery = `handshake=${escaped}&verificationString=${this.connectionVerifyString}&remoteId=${this.remoteId}`;
 
-    this.connection = ioClient.connect(config.server, {query: connectionQuery});
+      this.connection = ioClient.connect(config.server, {query: connectionQuery});
 
-    this.connection.on('error', msg => {
-      console.error(`Connection error: ${msg}`);
-      this._attemptRegistration()
+      this.connection.on('error', msg => {
+        console.error(`Connection error: ${msg}`);
+        reject();
+      });
+
+      this.connection.on('connect', () => {
+        console.log(`Successful connected to: ${config.server}`);
+
+        resolve(this.connection);
+      });
+
+      this.connection.on('invokeAction', payload => {
+          this.devices[payload.device]['class']['actions'][payload.action]()
+      });
+
+      this.connection.on('disconnect', () => {
+        console.log(`Disconnected from: ${config.server}`)
+      })
     });
-
-    this.connection.on('connect', () => {
-      console.log(`Successful connected to: ${config.server}`)
-
-
-
-      this.connection.emit('availableActions', this.actions)
-    });
-
-    this.connection.on('invokeAction', payload => {
-        this.devices[payload.device]['class']['actions'][payload.action]()
-    });
-
-    this.connection.on('disconnect', () => {
-      console.log(`Disconnected from: ${config.server}`)
-    })
-
   }
 
   _attemptRegistration() {
 
-    console.log('Remote not found on the server. Attempting registration');
+    return new Promise((resolve, reject) => {
 
-    request.post({url:`${config.server}/api/v1/remotes/new`, form: {deviceId:this._getDeviceId()}}, (error, responseCode, body) => {
+      console.log('Remote not found on the server. Attempting registration');
 
-      if (!!error) {
-        return console.error(error);
-      }
+      request.post({url:`${config.server}/api/v1/remotes/new`, form: {deviceId:this._getDeviceId()}}, (error, responseCode, body) => {
 
-      const response = JSON.parse(body);
-
-      fs.writeFile(keyLocation, response.key, (err) => {
-        if(err) {
-          return console.log('Writing error', err);
-        }
-        console.log("The file was saved!. Retrying");
-
-        try {
-            this._attemptConnection();
-        } catch (e) {
-            console.log('Connection failed after registration. Aborting')
-
+        if (!!error) {
+            console.error(error);
+            return reject(error);
         }
 
+        const response = JSON.parse(body);
+
+        fs.writeFile(keyLocation, response.key, (err) => {
+          if(err) {
+            console.log('Writing error', err);
+            return reject('Writing error')
+          }
+          console.log("The file was saved!. Retrying");
+
+              this._attemptConnection().then(resolve, error => {
+                  reject('Connection failed after registration. Aborting');
+                  console.log('Connection failed after registration. Aborting', error)
+              });
+
+        });
 
       });
-
-
     });
   }
+
 
 
 

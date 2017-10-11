@@ -1,11 +1,22 @@
+const assert = require('assert');
+
 export class Device {
 
-constructor(name) {
-    this.name = name;
-}
+    socket = null;
 
-getActions() {
-    return this.actions;
-}
+    constructor(name) {
+
+        assert(name, 'Check your config. No name set for some device!!');
+
+        this.name = name;
+    }
+
+    getActions() {
+        return this.actions;
+    }
+
+    setSocket(socket) {
+        this.socket = socket;
+    }
 
 }
