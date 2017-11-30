@@ -10,6 +10,7 @@ export class Button extends Device {
 
         process.stdin.on('keypress', (ch, key) => {
             if (key.name == 'n') {
+
                 this._notifySocket();
             }
         });

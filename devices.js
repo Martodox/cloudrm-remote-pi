@@ -1,24 +1,27 @@
+const rpio = require('rpio');
+
+
 export const devices = {
     'Switch1': {
         type: 'Switch',
         config:{
-            gpio: 10,
-            defaultState: 1
+            pin: 12,
+            defaultState: rpio.LOW
         }
     },
-    'Switch2': {
-        type: 'Switch',
-        config: {
-            gpio: 12,
-            defaultState: 1
-        }
-    },
-    'Button1': {
-        type: 'Button',
-        config: {
-            gpio: 1
-        }
-    },
+    // 'Switch2': {
+    //     type: 'Switch',
+    //     config: {
+    //         gpio: 12,
+    //         defaultState: 1
+    //     }
+    // },
+    // 'Button1': {
+    //     type: 'Button',
+    //     config: {
+    //         gpio: 1
+    //     }
+    // },
     // 'Button2': {
     //     type: 'Button',
     //     config: {

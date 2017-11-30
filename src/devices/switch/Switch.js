@@ -1,18 +1,25 @@
 import { Device } from '../device';
+import rpio from 'rpio';
+import is from 'is_js';
+
 const assert = require('assert');
+
 
 export class Switch extends Device {
 
-    state = 1;
+    state = rpio.LOW;
     actions = {};
 
     constructor(name, config) {
         super(name);
-        assert(config.gpio, `No default GPIO for switch ${name}`);
-        assert(config.defaultState, `No default state for switch ${name}`);
+
+        assert(config.pin, `No default GPIO for switch ${name}`);
+        assert(is.not.undefined(config.defaultState), `No default state for switch ${name}`);
 
         this.state = config.defaultState;
-        this.gpio = config.gpio;
+        this.pin = config.pin;
+
+        rpio.open(this.pin, rpio.OUTPUT, this.state);
 
         this.actions = {
             setState: this.setState.bind(this),
@@ -24,14 +31,14 @@ export class Switch extends Device {
     setState(state) {
         this.state = state;
 
+        rpio.write(this.pin, this.state);
+
         console.log(`${this.name} has changed to state: ${state}`);
 
     }
 
     toggleState() {
-
-        this.setState(1 - this.state)
-
+        this.setState(this.state ? rpio.LOW : rpio.HIGH);
     }
 
 }

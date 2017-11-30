@@ -5,3 +5,5 @@ storage
 .DS_Store
 key.rsa
 .vscode
+devices.js
+config.js
