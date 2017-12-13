@@ -23,22 +23,33 @@ export class Switch extends Device {
 
         this.actions = {
             setState: this.setState.bind(this),
-            toggleState: this.toggleState.bind(this)
+            toggleState: this.toggleState.bind(this),
+            getState: this.getState.bind(this)
         }
 
     }
 
-    setState(state) {
+    setState(state, silent=false) {
         this.state = state;
 
         rpio.write(this.pin, this.state);
+
+        if (!silent) {
+            this.emitChange(this.name, 'setState', this.state)
+        }
 
         console.log(`${this.name} has changed to state: ${state}`);
 
     }
 
     toggleState() {
-        this.setState(this.state ? rpio.LOW : rpio.HIGH);
+        this.setState(this.state ? rpio.LOW : rpio.HIGH, true);
+
+        this.emitChange(this.name, 'toggleState', this.state)
+    }
+
+    getState() {
+        this.emitChange(this.name, 'getState', this.state)
     }
 
 }
