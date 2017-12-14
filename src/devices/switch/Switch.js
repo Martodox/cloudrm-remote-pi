@@ -7,7 +7,6 @@ const assert = require('assert');
 
 export class Switch extends Device {
 
-    state = rpio.LOW;
     actions = {};
 
     constructor(name, config) {
@@ -16,10 +15,9 @@ export class Switch extends Device {
         assert(config.pin, `No default GPIO for switch ${name}`);
         assert(is.not.undefined(config.defaultState), `No default state for switch ${name}`);
 
-        this.state = config.defaultState;
         this.pin = config.pin;
 
-        rpio.open(this.pin, rpio.OUTPUT, this.state);
+        rpio.open(this.pin, rpio.OUTPUT, config.defaultState);
 
         this.actions = {
             setState: this.setState.bind(this),
@@ -30,12 +28,11 @@ export class Switch extends Device {
     }
 
     setState(state, silent=false) {
-        this.state = state;
 
-        rpio.write(this.pin, this.state);
+        rpio.write(this.pin, state);
 
         if (!silent) {
-            this.emitChange(this.name, 'setState', this.state)
+            this.emitChange(this.name, 'setState', state)
         }
 
         console.log(`${this.name} has changed to state: ${state}`);
@@ -43,13 +40,20 @@ export class Switch extends Device {
     }
 
     toggleState() {
-        this.setState(this.state ? rpio.LOW : rpio.HIGH, true);
 
-        this.emitChange(this.name, 'toggleState', this.state)
+        let state = this.readState();
+
+        this.setState(state ? rpio.LOW : rpio.HIGH, true);
+
+        this.emitChange(this.name, 'toggleState', state)
     }
 
     getState() {
-        this.emitChange(this.name, 'getState', this.state)
+        this.emitChange(this.name, 'getState', this.readState())
+    }
+
+    readState() {
+        return rpio.read(this.pin);
     }
 
 }
