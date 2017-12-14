@@ -32,7 +32,7 @@ export class Switch extends Device {
         rpio.write(this.pin, state);
 
         if (!silent) {
-            this.emitChange(this.name, 'setState', state)
+            this.emitChange(this.name, 'setState', this.readState())
         }
 
         console.log(`${this.name} has changed to state: ${state}`);
@@ -45,7 +45,7 @@ export class Switch extends Device {
 
         this.setState(state ? rpio.LOW : rpio.HIGH, true);
 
-        this.emitChange(this.name, 'toggleState', state)
+        this.emitChange(this.name, 'toggleState', this.readState())
     }
 
     getState() {
