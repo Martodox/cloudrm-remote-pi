@@ -111,7 +111,7 @@ export default class webSocketConnector {
 
       console.log('Remote not found on the server. Attempting registration');
 
-      request.post({url:`${config.server}/api/v1/remotes/new`, form: {deviceId:this._getDeviceId()}}, (error, responseCode, body) => {
+      request.post({url:`${config.server}/api/v1/new-remote`, form: {deviceId:this._getDeviceId()}}, (error, responseCode, body) => {
 
         if (!!error) {
             console.error(error);
