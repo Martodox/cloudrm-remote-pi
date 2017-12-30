@@ -20,14 +20,13 @@ export class Switch extends Device {
         rpio.open(this.pin, rpio.OUTPUT, config.defaultState);
 
         this.actions = {
-            setState: this.setState.bind(this),
             toggleState: this.toggleState.bind(this),
             getState: this.getState.bind(this)
         }
 
     }
 
-    setState(state, silent=false) {
+    setState(state = this.readState(), silent=false) {
 
         rpio.write(this.pin, state);
 
