@@ -10,19 +10,13 @@ export class Button extends Device {
 
         process.stdin.on('keypress', (ch, key) => {
             if (key.name == 'n') {
-
-                this._notifySocket();
+                this.emitChange(this.name, 'press');
             }
         });
 
     }
 
-    _notifySocket() {
-        console.log('notify');
-        if (this.socket) {
-            this.socket.emit('somethingHappen', this.name);
-        }
-    }
+
 
 
 }
