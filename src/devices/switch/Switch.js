@@ -31,12 +31,23 @@ export class Switch extends Device {
 
     }
 
-    setState(state = this.readState(), silent=false) {
+    emitSwitchState(action) {
+
+        let state = this.readState();
+
+        if (this.reversed) {
+            state = state === 1 ? 0 : 1;
+        }
+
+        this.emitChange(this.name, action, state)
+    }
+
+    setState(state, silent=false) {
 
         rpio.write(this.pin, state);
 
         if (!silent) {
-            this.emitChange(this.name, 'setState', this.readState())
+            this.emitSwitchState('setState')
         }
 
         console.log(`${this.name} has changed to state: ${state}`);
@@ -45,26 +56,17 @@ export class Switch extends Device {
 
     toggleState() {
 
-        let state = this.readState();
+        this.setState(this.readState() ? rpio.LOW : rpio.HIGH, true);
 
-        this.setState(state ? rpio.LOW : rpio.HIGH, true);
-
-        this.emitChange(this.name, 'toggleState', this.readState())
+        this.emitSwitchState('toggleState')
     }
 
     getState() {
-        this.emitChange(this.name, 'getState', this.readState())
+        this.emitSwitchState('getState')
     }
 
     readState() {
-
-        if (this.reversed) {
-            return rpio.read(this.pin) ? 0 : 1;
-        }
-
         return rpio.read(this.pin);
-
-
     }
 
 }
