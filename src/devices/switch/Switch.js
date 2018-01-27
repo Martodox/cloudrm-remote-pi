@@ -8,7 +8,7 @@ const assert = require('assert');
 export class Switch extends Device {
 
     actions = {};
-    isStateReversed = 1;
+    reversed = false;
 
     constructor(name, config) {
         super(name);
@@ -17,7 +17,7 @@ export class Switch extends Device {
         assert(is.not.undefined(config.defaultState), `No default state for switch ${name}`);
 
         if (config.reversed) {
-            this.isStateReversed = -1;
+            this.reversed = config.reversed;
         }
 
         this.pin = config.pin;
@@ -57,7 +57,14 @@ export class Switch extends Device {
     }
 
     readState() {
-        return rpio.read(this.pin) * this.isStateReversed;
+
+        if (this.reversed) {
+            return rpio.read(this.pin) ? 0 : 1;
+        }
+
+        return rpio.read(this.pin);
+
+
     }
 
 }
