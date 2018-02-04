@@ -34,6 +34,9 @@ export class Button extends Device {
         this.actions = {
             touch: function () {
                 this.emitChange(this.name, 'touch', throttle)
+            },
+            getState: function () {
+                this.emitChange(this.name, 'getState', throttle)
             }
         }
         
