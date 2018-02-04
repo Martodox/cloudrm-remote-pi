@@ -13,7 +13,7 @@ export class Switch extends Device {
     constructor(name, config) {
         super(name);
 
-        assert(config.pin, `No default GPIO for switch ${name}`);
+        assert(config.pin, `No pin for switch ${name}`);
         assert(is.not.undefined(config.defaultState), `No default state for switch ${name}`);
 
         if (config.reversed) {

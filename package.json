@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "nodemon src/index.js --exec babel-node",
-    "debug": "nodemon src/index.js --exec babel-node --inspect=922",
+    "debug": "nodemon src/index.js --exec babel-node --inspect=9222",
     "build": "babel src -d dist",
     "serve": "node dist/index.js",
     "test": "mocha --compilers js:babel-register"
@@ -27,6 +27,7 @@
     "request": "^2.81.0",
     "rpio": "^0.9.19",
     "socket.io-client": "^1.7.2",
-    "urlsafe-base64": "^1.0.0"
+    "urlsafe-base64": "^1.0.0",
+    "rxjs": "^5.5.6"
   }
 }
