@@ -15,7 +15,7 @@ export class Button extends Device {
         assert(config.pin, `No pin for button ${name}`);
         assert(config.type, `No type for button ${name}. Either PULL_UP or PULL_DOWN`);
 
-        const throttle = config.throttle ? config.throttle : 1000;
+        this.throttle = config.throttle ? config.throttle : 1000;
 
         rpio.open(config.pin, rpio.INPUT, config.type);
 
@@ -26,22 +26,24 @@ export class Button extends Device {
                 observer.next()
             });
         })
-        .throttle(() => Rx.Observable.interval(throttle))
-        .subscribe(() => {
-            this.emitChange(this.name, 'touch', throttle)
-        });
+        .throttle(() => Rx.Observable.interval(this.throttle))
+        .subscribe(this.touch.bind(this));
 
         this.actions = {
-            touch: function () {
-                this.emitChange(this.name, 'touch', throttle)
-            },
-            getState: function () {
-                this.emitChange(this.name, 'getState', throttle)
-            }
+            touch: this.touch.bind(this),
+            getState: this.returnState.bind(this)
         }
         
-        
     }
+
+    touch() {
+        this.emitChange(this.name, 'touch', this.throttle)
+    }
+
+    returnState() {
+        this.emitChange(this.name, 'getState', this.throttle)
+    }
+
 
 }
 
