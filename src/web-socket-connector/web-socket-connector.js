@@ -96,7 +96,13 @@ export default class webSocketConnector {
       });
 
       this.connection.on('invokeAction', payload => {
-          this.devices[payload.device]['class']['actions'][payload.action]()
+          try {
+              this.devices[payload.device]['class']['actions'][payload.action]()
+          } catch (e) {
+              console.log(`${payload.device} or ${payload.action} not found on the device. Sorry`);
+              console.error(e);
+          }
+
       });
 
       this.connection.on('disconnect', () => {
