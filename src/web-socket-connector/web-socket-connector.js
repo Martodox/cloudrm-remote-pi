@@ -31,14 +31,15 @@ export default class webSocketConnector {
   registerDevicesActions(devices) {
       this.devices = devices;
 
-      this.actions = []
+      this.actions = [];
 
       for (let device in this.devices) {
           try {
               this.actions.push({
                   name: device,
                   type: this.devices[device]['type'],
-                  actions: Object.keys(this.devices[device]['class']['actions'])
+                  actions: Object.keys(this.devices[device]['class']['actions']),
+                  config: this.devices[device]['config']
               })
           } catch (error) {
 
