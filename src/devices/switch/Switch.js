@@ -50,7 +50,7 @@ export class Switch extends Device {
             this.emitSwitchState('setState')
         }
 
-        console.log(`${new Date()} ${this.name} has changed to state: ${state}`);
+        console.log(`${new Date()} | ${this.name} has changed to state: ${state}`);
 
     }
 

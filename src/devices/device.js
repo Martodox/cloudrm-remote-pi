@@ -21,7 +21,7 @@ export class Device {
     }
 
     emitChange(device, action, state) {
-        console.log(`Sending event: ${this.deviceId}:${device}:${action} with state: `, state);
+        console.log(`S${new Date()} | ending event: ${this.deviceId}:${device}:${action} with state: `, state);
         this.socket.emit(`${this.deviceId}:${device}:${action}`, state);
     }
 
